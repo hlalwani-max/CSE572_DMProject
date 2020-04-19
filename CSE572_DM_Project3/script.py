@@ -1,7 +1,68 @@
-# Just a test script. No work done yet/
-import pandas as pd
 import numpy as np
+import pandas as pd
+import scipy.fftpack as fftp
+import scipy.stats as stat
+from sklearn import metrics
+from sklearn import model_selection
+from sklearn.cluster import KMeans, DBSCAN
+from sklearn.decomposition import PCA
 from sklearn.impute import SimpleImputer
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.preprocessing import StandardScaler as ss
+
+
+def kurtosis(data):
+    m_Kurtosis = np.zeros((data.shape[0], 1))
+    m_Kurtosis[:, 0] = data.apply(lambda row: row.kurtosis(), axis=1)
+    return m_Kurtosis
+
+
+def lage(data):
+    m_LAGE = np.zeros((data.shape[0], 1))
+    m_LAGE[:, 0] = data.apply(lambda row: row.max() - row.min(), axis=1)
+    return m_LAGE
+
+
+def entropy(data):
+    m_entropy = np.zeros((data.shape[0], 1))
+    for i in range(data.shape[0]):
+        m_entropy[i, :] = stat.entropy(data.iloc[i, :])
+    return m_entropy
+
+
+# FFT Top 5 Features shape (216,5)
+def mfft(data):
+    m_fft = fftp.fft(data, axis=0)
+    np.absolute(m_fft)
+    sorted_m_fft = np.copy(m_fft)
+    m_fft.sort()
+    FFT_Top5Features = sorted_m_fft[:, ::-1][:, :5]
+    return FFT_Top5Features
+
+
+def featureMat(data):
+    # Kurtosis
+    kurtosis_out = kurtosis(data)
+    # print("kurtosis", kurtosis_out)
+
+    # LAGE
+    lage_out = lage(data)
+    # print("LAGE: ", LAGE_out)
+
+    # Entropy
+    entropy_out = entropy(data)
+    # print("Entropy:", entropy_out)
+
+    # FFT Top5 features
+    fft5_out = mfft(data)
+    # print("FFT Top5", fft5_out)
+
+    # FeatureMatrix
+    featureMAT = np.hstack((fft5_out, kurtosis_out, lage_out, entropy_out))
+
+    featureMAT = ss().fit_transform(featureMAT.real)
+
+    return featureMAT
 
 
 def missingValueMean(data):
@@ -46,6 +107,43 @@ def carbToBins(data):
             data.iloc[i, 0] = 6
 
 
+def dataClusterMapping(data):
+    # dict = {"b1": [], "b2": [], "b3": [], "b4": [], "b5": []}
+
+    cluster_mapping_GT = {
+        1: [],
+        2: [],
+        3: [],
+        4: [],
+        5: [],
+        6: []
+    }
+
+    cluster_mapping_GT_rev = {}
+
+    for i in range(len(data)):
+        if data.iloc[i, 30] == 1:
+            cluster_mapping_GT[1].append(i)
+            cluster_mapping_GT_rev[i] = 1
+        elif data.iloc[i, 30] == 2:
+            cluster_mapping_GT[2].append(i)
+            cluster_mapping_GT_rev[i] = 2
+        elif data.iloc[i, 30] == 3:
+            cluster_mapping_GT[3].append(i)
+            cluster_mapping_GT_rev[i] = 3
+        elif data.iloc[i, 30] == 4:
+            cluster_mapping_GT[4].append(i)
+            cluster_mapping_GT_rev[i] = 4
+        elif data.iloc[i, 30] == 5:
+            cluster_mapping_GT[5].append(i)
+            cluster_mapping_GT_rev[i] = 5
+        else:
+            cluster_mapping_GT[6].append(i)
+            cluster_mapping_GT_rev[i] = 6
+
+    return cluster_mapping_GT, cluster_mapping_GT_rev
+
+
 def carbToBinsConcat():
     label_meal1 = pd.read_csv("MealAmountData/mealAmountData1.csv", header=None)
     label_meal2 = pd.read_csv("MealAmountData/mealAmountData2.csv", header=None)
@@ -69,8 +167,7 @@ def carbToBinsConcat():
     return label_meal
 
 
-def getMealLabelledData():
-
+def getDataAndLabels():
     meal1 = readFileToPandas("MealNoMealData/mealData1.csv")
     meal2 = readFileToPandas("MealNoMealData/mealData2.csv")
     meal3 = readFileToPandas("MealNoMealData/mealData3.csv")
@@ -88,12 +185,93 @@ def getMealLabelledData():
 
     meal_label = carbToBinsConcat()
 
-    data = meal.copy()
-    data[30] = np.nan
+    # data = meal.copy()
+    # data[30] = np.nan
+    #
+    # for i in range(len(meal)):
+    #     data.iloc[i, 30] = meal_label.iloc[i, 0]
+    return meal, meal_label
 
-    for i in range(len(meal)):
-        data.iloc[i, 30] = meal_label.iloc[i,0]
-    return data
 
-data = getMealLabelledData()
-print(data)
+def getLabelledData(data, labels):
+    df = data.copy()
+    df[30] = np.nan
+
+    for i in range(len(labels)):
+        df.iloc[i, 30] = labels.iloc[i, 0]
+
+    global mapping_data_point_to_cluster
+
+    _, mapping_data_point_to_cluster = dataClusterMapping(df)
+    print(mapping_data_point_to_cluster)
+
+    return df
+
+
+def doKmeans(X, y):
+    X_train, X_test, y_train, y_test = model_selection.train_test_split(X, y, train_size=0.60, test_size=0.40)
+
+    k_means = KMeans(n_clusters=6)
+    k_means.fit(X_train)
+    # print("\ncluster labels:", k_means.labels_[:])
+    print("\nactual labels:", y_test.flatten())
+    # print("Predicted labels:", KMea)
+    # print("X_test.shape", X_test.shape)
+    Y_pred = k_means.predict(X_test)
+    print("Predicted Labels-", Y_pred)
+    print("\nCluster centers: ", k_means.cluster_centers_)
+    score = metrics.accuracy_score(y_test, Y_pred)
+    print('\nAccuracy:{0:f}'.format(score))
+    global cluster
+    cluster = pd.DataFrame(k_means.labels_)
+    # print(X_train.shape, X_test.shape)
+    # print(cluster.shape)
+    getMajorityCluster(cluster)
+
+    # print("cluster 1: ", cluster[k_means.labels_ == 1])
+
+
+def doDBScan(X, y):
+    X_train, X_test, y_train, y_test = model_selection.train_test_split(X, y, train_size=0.60, test_size=0.40,
+                                                                        random_state=101)
+
+    # db_scan = DBSCAN(eps=0.265, min_samples=2)
+    db_scan = DBSCAN(eps=0.265, min_samples=2)
+    db_scan.fit(X_train)
+    print("\ncluster labels:", db_scan.labels_[:])
+    print("\nactual labels:", y_test.flatten())
+    # print("Predicted labels:", KMea)
+    db_scan.fit_predict(X_train)
+    # print("\nCluster centers: ", db_scan.cluster_centers_)
+    score = metrics.accuracy_score(y_test, db_scan.fit_predict(X_test))
+    print('\nAccuracy:{0:f}'.format(score))
+    cluster = pd.DataFrame(db_scan.labels_)
+    # getMajorityCluster(cluster)
+    # print("cluster 1: ", cluster[db_scan.labels_ == 1])
+
+
+def mappingClustersToGroundLabels(clusters, y):
+    clust = np.numpy(clusters).flatten
+
+    # print(arr)
+
+
+meal_data, labels = getDataAndLabels()
+# print(meal_data)
+
+labelled_meal_data = getLabelledData(meal_data, labels)
+
+f_mat = featureMat(meal_data)
+
+pca = PCA(n_components=8)
+pca_fit = pca.fit_transform(f_mat)
+
+scaler = MinMaxScaler(feature_range=(0, 1))
+X = scaler.fit_transform(pca_fit)
+# X = f_mat
+y = np.array(labels)
+
+doKmeans(X, y)
+# doDBScan(X,y)
+# print(X.shape)
+# print(y)

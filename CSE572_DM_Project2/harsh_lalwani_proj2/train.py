@@ -152,10 +152,8 @@ def model():
     acc_svm = statistics.mean(scores_svm)
     print("SVM accuracy = ", acc_svm)
 
-    if acc_svm < acc_rf:
-        rf_file = "model.pkl"
-        joblib.dump(rf, rf_file)
+    rf_file = "rf.pkl"
+    joblib.dump(rf, rf_file)
+    svm_file = "svm.pkl"
+    joblib.dump(svm, svm_file)
 
-    else:
-        svm_file = "model.pkl"
-        joblib.dump(svm, svm_file)
