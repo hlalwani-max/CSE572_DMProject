@@ -2,20 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="7a2cce06-0c65-46d7-ac65-80f84ac08543" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/TestData.csv" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/TestOutput.csv" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/rf.pkl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/svm.pkl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../../CSE572_DM_Project3/.idea/other.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../../CSE572_DM_Project3/Assignment 3 Data Mining CSE 572-1-1.pdf" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../../CSE572_DM_Project1" beforeDir="false" afterPath="$PROJECT_DIR$/../../CSE572_DM_Project1" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test.py" beforeDir="false" afterPath="$PROJECT_DIR$/test.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/train.py" beforeDir="false" afterPath="$PROJECT_DIR$/train.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../CSE572_DM_Project3/.idea/Project3.iml" beforeDir="false" afterPath="$PROJECT_DIR$/../../CSE572_DM_Project3/.idea/Project3.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../CSE572_DM_Project3/Assignment 3 Data Mining CSE 572-1-1.docx" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../CSE572_DM_Project3/script.py" beforeDir="false" afterPath="$PROJECT_DIR$/../../CSE572_DM_Project3/script.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/TestOutput.csv" beforeDir="false" afterPath="$PROJECT_DIR$/TestOutput.csv" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -103,38 +92,55 @@
       <updated>1583814496178</updated>
       <workItem from="1583814498424" duration="738000" />
       <workItem from="1587260404746" duration="1846000" />
-      <workItem from="1587263124591" duration="250000" />
+      <workItem from="1587263124591" duration="1445000" />
+      <workItem from="1587679773594" duration="234000" />
     </task>
+    <task id="LOCAL-00001" summary="Adding prof test cases to test using RF model and saving predicted labels to TestOutput.csv">
+      <created>1587263556125</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1587263556125</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="1" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="Adding prof test cases to test using RF model and saving predicted labels to TestOutput.csv" />
+    <option name="LAST_COMMIT_MESSAGE" value="Adding prof test cases to test using RF model and saving predicted labels to TestOutput.csv" />
   </component>
   <component name="WindowStateProjectService">
     <state x="578" y="280" key="#com.intellij.refactoring.safeDelete.UnsafeUsagesDialog" timestamp="1587261468263">
       <screen x="0" y="0" width="1680" height="1050" />
     </state>
     <state x="578" y="280" key="#com.intellij.refactoring.safeDelete.UnsafeUsagesDialog/0.0.1680.1050@0.0.1680.1050" timestamp="1587261468263" />
-    <state width="1638" height="295" key="GridCell.Tab.0.bottom" timestamp="1587263482078">
+    <state x="268" y="130" key="CommitChangelistDialog2" timestamp="1587263555857">
       <screen x="0" y="0" width="1680" height="1050" />
+    </state>
+    <state x="268" y="130" key="CommitChangelistDialog2/0.0.1680.1050@0.0.1680.1050" timestamp="1587263555857" />
+    <state width="1638" height="295" key="GridCell.Tab.0.bottom" timestamp="1587508112122">
+      <screen x="0" y="23" width="1680" height="978" />
     </state>
     <state width="1638" height="295" key="GridCell.Tab.0.bottom/0.0.1680.1050@0.0.1680.1050" timestamp="1587263482078" />
-    <state width="1638" height="295" key="GridCell.Tab.0.bottom/0.23.1680.978@0.23.1680.978" timestamp="1583855184083" />
-    <state width="1638" height="295" key="GridCell.Tab.0.center" timestamp="1587263482076">
-      <screen x="0" y="0" width="1680" height="1050" />
+    <state width="1638" height="295" key="GridCell.Tab.0.bottom/0.23.1680.978@0.23.1680.978" timestamp="1587508112122" />
+    <state width="1638" height="295" key="GridCell.Tab.0.center" timestamp="1587508112121">
+      <screen x="0" y="23" width="1680" height="978" />
     </state>
     <state width="1638" height="295" key="GridCell.Tab.0.center/0.0.1680.1050@0.0.1680.1050" timestamp="1587263482076" />
-    <state width="1638" height="295" key="GridCell.Tab.0.center/0.23.1680.978@0.23.1680.978" timestamp="1583855184082" />
-    <state width="1638" height="295" key="GridCell.Tab.0.left" timestamp="1587263482076">
-      <screen x="0" y="0" width="1680" height="1050" />
+    <state width="1638" height="295" key="GridCell.Tab.0.center/0.23.1680.978@0.23.1680.978" timestamp="1587508112121" />
+    <state width="1638" height="295" key="GridCell.Tab.0.left" timestamp="1587508112120">
+      <screen x="0" y="23" width="1680" height="978" />
     </state>
     <state width="1638" height="295" key="GridCell.Tab.0.left/0.0.1680.1050@0.0.1680.1050" timestamp="1587263482076" />
-    <state width="1638" height="295" key="GridCell.Tab.0.left/0.23.1680.978@0.23.1680.978" timestamp="1583855184081" />
-    <state width="1638" height="295" key="GridCell.Tab.0.right" timestamp="1587263482077">
-      <screen x="0" y="0" width="1680" height="1050" />
+    <state width="1638" height="295" key="GridCell.Tab.0.left/0.23.1680.978@0.23.1680.978" timestamp="1587508112120" />
+    <state width="1638" height="295" key="GridCell.Tab.0.right" timestamp="1587508112121">
+      <screen x="0" y="23" width="1680" height="978" />
     </state>
     <state width="1638" height="295" key="GridCell.Tab.0.right/0.0.1680.1050@0.0.1680.1050" timestamp="1587263482077" />
-    <state width="1638" height="295" key="GridCell.Tab.0.right/0.23.1680.978@0.23.1680.978" timestamp="1583855184082" />
+    <state width="1638" height="295" key="GridCell.Tab.0.right/0.23.1680.978@0.23.1680.978" timestamp="1587508112121" />
     <state x="341" y="164" key="SettingsEditor" timestamp="1583814607356">
       <screen x="0" y="0" width="1680" height="1050" />
     </state>

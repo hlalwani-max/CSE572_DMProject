@@ -9,7 +9,7 @@ from sklearn.decomposition import PCA
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.preprocessing import StandardScaler as ss
-
+from collections import Counter
 
 def kurtosis(data):
     m_Kurtosis = np.zeros((data.shape[0], 1))
@@ -90,7 +90,6 @@ def readFileToPandas(data_file):
 
 
 def carbToBins(data):
-    # dict = {"b1": [], "b2": [], "b3": [], "b4": [], "b5": []}
 
     for i in range(len(data)):
         if data.iloc[i, 0] == 0:
@@ -185,11 +184,6 @@ def getDataAndLabels():
 
     meal_label = carbToBinsConcat()
 
-    # data = meal.copy()
-    # data[30] = np.nan
-    #
-    # for i in range(len(meal)):
-    #     data.iloc[i, 30] = meal_label.iloc[i, 0]
     return meal, meal_label
 
 
@@ -213,51 +207,57 @@ def doKmeans(X, y):
 
     k_means = KMeans(n_clusters=6)
     k_means.fit(X_train)
-    # print("\ncluster labels:", k_means.labels_[:])
     print("\nactual labels:", y_test.flatten())
-    # print("Predicted labels:", KMea)
-    # print("X_test.shape", X_test.shape)
     Y_pred = k_means.predict(X_test)
     print("Predicted Labels-", Y_pred)
     print("\nCluster centers: ", k_means.cluster_centers_)
     score = metrics.accuracy_score(y_test, Y_pred)
     print('\nAccuracy:{0:f}'.format(score))
-    global cluster
     cluster = pd.DataFrame(k_means.labels_)
-    # print(X_train.shape, X_test.shape)
-    # print(cluster.shape)
-    getMajorityCluster(cluster)
+    print("Old cluster:", cluster)
+    clust_to_real_clust_map = mapClusterToCluster(cluster, y_train)
 
-    # print("cluster 1: ", cluster[k_means.labels_ == 1])
+    for i in range(150):
+        cluster.iloc[i][0] = clust_to_real_clust_map[cluster.iloc[i][0]]
+
+    print("New cluster with ground truth:", cluster)
+
+    return cluster
 
 
 def doDBScan(X, y):
     X_train, X_test, y_train, y_test = model_selection.train_test_split(X, y, train_size=0.60, test_size=0.40,
                                                                         random_state=101)
 
-    # db_scan = DBSCAN(eps=0.265, min_samples=2)
     db_scan = DBSCAN(eps=0.265, min_samples=2)
     db_scan.fit(X_train)
     print("\ncluster labels:", db_scan.labels_[:])
     print("\nactual labels:", y_test.flatten())
-    # print("Predicted labels:", KMea)
     db_scan.fit_predict(X_train)
-    # print("\nCluster centers: ", db_scan.cluster_centers_)
     score = metrics.accuracy_score(y_test, db_scan.fit_predict(X_test))
     print('\nAccuracy:{0:f}'.format(score))
     cluster = pd.DataFrame(db_scan.labels_)
-    # getMajorityCluster(cluster)
-    # print("cluster 1: ", cluster[db_scan.labels_ == 1])
+
+# cluster to correct cluster
+def mapClusterToCluster(clusters, ground_label):
+    map_data_index_to_clusters = {}
+    for i in range(len(clusters)):
+        if clusters.iloc[i][0] not in map_data_index_to_clusters:
+            map_data_index_to_clusters[clusters.iloc[i][0]] = [ground_label[i][0]]
+        else:
+            map_data_index_to_clusters[clusters.iloc[i][0]].append(ground_label[i][0])
 
 
-def mappingClustersToGroundLabels(clusters, y):
-    clust = np.numpy(clusters).flatten
+    map_cluster_to_real_cluster = {}
+    for key in map_data_index_to_clusters.keys():
+        c = Counter(map_data_index_to_clusters[key]).most_common(1)
+        map_cluster_to_real_cluster[key] = c[0][0]
 
-    # print(arr)
+    return map_cluster_to_real_cluster
+
 
 
 meal_data, labels = getDataAndLabels()
-# print(meal_data)
 
 labelled_meal_data = getLabelledData(meal_data, labels)
 
@@ -268,10 +268,6 @@ pca_fit = pca.fit_transform(f_mat)
 
 scaler = MinMaxScaler(feature_range=(0, 1))
 X = scaler.fit_transform(pca_fit)
-# X = f_mat
 y = np.array(labels)
 
-doKmeans(X, y)
-# doDBScan(X,y)
-# print(X.shape)
-# print(y)
+predicted_Kmeans_labels = doKmeans(X, y)
