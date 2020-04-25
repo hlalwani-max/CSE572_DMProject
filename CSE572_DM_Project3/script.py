@@ -1,3 +1,5 @@
+from collections import Counter
+
 import numpy as np
 import pandas as pd
 import scipy.fftpack as fftp
@@ -7,9 +9,10 @@ from sklearn import model_selection
 from sklearn.cluster import KMeans, DBSCAN
 from sklearn.decomposition import PCA
 from sklearn.impute import SimpleImputer
+from sklearn.neighbors import KNeighborsClassifier
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.preprocessing import StandardScaler as ss
-from collections import Counter
+
 
 def kurtosis(data):
     m_Kurtosis = np.zeros((data.shape[0], 1))
@@ -90,7 +93,6 @@ def readFileToPandas(data_file):
 
 
 def carbToBins(data):
-
     for i in range(len(data)):
         if data.iloc[i, 0] == 0:
             data.iloc[i, 0] = 1
@@ -202,9 +204,7 @@ def getLabelledData(data, labels):
     return df
 
 
-def doKmeans(X, y):
-    X_train, X_test, y_train, y_test = model_selection.train_test_split(X, y, train_size=0.60, test_size=0.40)
-
+def doKmeans(X_train, X_test, y_train, y_test):
     k_means = KMeans(n_clusters=6)
     k_means.fit(X_train)
     print("\nactual labels:", y_test.flatten())
@@ -238,6 +238,7 @@ def doDBScan(X, y):
     print('\nAccuracy:{0:f}'.format(score))
     cluster = pd.DataFrame(db_scan.labels_)
 
+
 # cluster to correct cluster
 def mapClusterToCluster(clusters, ground_label):
     map_data_index_to_clusters = {}
@@ -247,7 +248,6 @@ def mapClusterToCluster(clusters, ground_label):
         else:
             map_data_index_to_clusters[clusters.iloc[i][0]].append(ground_label[i][0])
 
-
     map_cluster_to_real_cluster = {}
     for key in map_data_index_to_clusters.keys():
         c = Counter(map_data_index_to_clusters[key]).most_common(1)
@@ -255,6 +255,14 @@ def mapClusterToCluster(clusters, ground_label):
 
     return map_cluster_to_real_cluster
 
+
+def knn_nearestNeighbors(x_train, x_test, pred_labels, Y_test):
+    model = KNeighborsClassifier(n_neighbors=4)
+    model.fit(x_train, pred_labels)
+    predicted = model.predict(x_test)
+    print("KNN Predicted", predicted)
+    score = metrics.accuracy_score(Y_test, predicted)
+    print("KNN Accuracy, ", score)
 
 
 meal_data, labels = getDataAndLabels()
@@ -270,4 +278,9 @@ scaler = MinMaxScaler(feature_range=(0, 1))
 X = scaler.fit_transform(pca_fit)
 y = np.array(labels)
 
-predicted_Kmeans_labels = doKmeans(X, y)
+X_train, X_test, y_train, y_test = model_selection.train_test_split(X, y, train_size=0.60, test_size=0.40)
+
+predicted_Kmeans_labels = doKmeans(X_train, X_test, y_train, y_test)
+predicted_Kmeans_labels = np.array(predicted_Kmeans_labels)
+# print(predicted_Kmeans_labels)
+knn_nearestNeighbors(X_train, X_test, predicted_Kmeans_labels, y_test)
