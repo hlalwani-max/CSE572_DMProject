@@ -199,7 +199,7 @@ def getLabelledData(data, labels):
     global mapping_data_point_to_cluster
 
     _, mapping_data_point_to_cluster = dataClusterMapping(df)
-    print(mapping_data_point_to_cluster)
+    # print(mapping_data_point_to_cluster)
 
     return df
 
@@ -225,19 +225,53 @@ def doKmeans(X_train, X_test, y_train, y_test):
     return cluster
 
 
-def doDBScan(X, y):
-    X_train, X_test, y_train, y_test = model_selection.train_test_split(X, y, train_size=0.60, test_size=0.40,
-                                                                        random_state=101)
-
+def doDBScan(X_train, X_test, y_train, y_test):
+    x_train_db = X_train.copy()
+    y_train_db = y_train.copy()
     db_scan = DBSCAN(eps=0.265, min_samples=2)
-    db_scan.fit(X_train)
-    print("\ncluster labels:", db_scan.labels_[:])
-    print("\nactual labels:", y_test.flatten())
-    db_scan.fit_predict(X_train)
-    score = metrics.accuracy_score(y_test, db_scan.fit_predict(X_test))
-    print('\nAccuracy:{0:f}'.format(score))
-    cluster = pd.DataFrame(db_scan.labels_)
+    db_scan.fit(x_train_db)
 
+
+    # print("\ncluster labels:", db_scan.labels_[:])
+    # db_scan.fit_predict(x_train_db)
+    # score = metrics.accuracy_score(y_test, db_scan.fit_predict(X_test))
+    # print('\nAccuracy:{0:f}'.format(score))
+    cluster = pd.DataFrame(db_scan.labels_)
+    # print(cluster)
+
+    # print("Old cluster:", cluster)
+    # clust_to_real_clust_map = mapClusterToCluster(cluster, y_train)
+    #
+    # for i in range(150):
+    #     cluster.iloc[i][0] = clust_to_real_clust_map[cluster.iloc[i][0]]
+    #
+    # print("New cluster with ground truth:", cluster)
+
+    cluster_np = np.array(cluster)
+    for i in range(20):
+        removeOutliersDBScan(x_train_db, cluster_np)
+    # bool = np.any((cluster_np < 0) | (cluster_np > 5))
+    # print(bool)
+
+    cluster = pd.DataFrame(cluster_np)
+    print("Old cluster:", cluster)
+    clust_to_real_clust_map = mapClusterToCluster(cluster, y_train)
+
+    for i in range(150):
+        cluster.iloc[i][0] = clust_to_real_clust_map[cluster.iloc[i][0]]
+
+    print("New cluster with ground truth:", cluster)
+
+    return cluster
+
+def removeOutliersDBScan(x_train_db, cluster_np):
+
+    model = KNeighborsClassifier(n_neighbors=8, p=8)
+    model.fit(x_train_db, cluster_np)
+
+    for i in range(150):
+        if cluster_np[i][0] not in range(6):
+            cluster_np[i][0] = model.predict(x_train_db[i].reshape(-1, 8))
 
 # cluster to correct cluster
 def mapClusterToCluster(clusters, ground_label):
@@ -257,7 +291,7 @@ def mapClusterToCluster(clusters, ground_label):
 
 
 def knn_nearestNeighbors(x_train, x_test, pred_labels, Y_test):
-    model = KNeighborsClassifier(n_neighbors=4)
+    model = KNeighborsClassifier(n_neighbors=8, p=10)
     model.fit(x_train, pred_labels)
     predicted = model.predict(x_test)
     print("KNN Predicted", predicted)
@@ -266,7 +300,6 @@ def knn_nearestNeighbors(x_train, x_test, pred_labels, Y_test):
 
 
 meal_data, labels = getDataAndLabels()
-
 labelled_meal_data = getLabelledData(meal_data, labels)
 
 f_mat = featureMat(meal_data)
@@ -279,8 +312,16 @@ X = scaler.fit_transform(pca_fit)
 y = np.array(labels)
 
 X_train, X_test, y_train, y_test = model_selection.train_test_split(X, y, train_size=0.60, test_size=0.40)
+#
+# # K-means
+# predicted_Kmeans_labels = doKmeans(X_train, X_test, y_train, y_test)
+# predicted_Kmeans_labels = np.array(predicted_Kmeans_labels)
+# # print(predicted_Kmeans_labels)
+# knn_nearestNeighbors(X_train, X_test, predicted_Kmeans_labels, y_test)
 
-predicted_Kmeans_labels = doKmeans(X_train, X_test, y_train, y_test)
-predicted_Kmeans_labels = np.array(predicted_Kmeans_labels)
-# print(predicted_Kmeans_labels)
-knn_nearestNeighbors(X_train, X_test, predicted_Kmeans_labels, y_test)
+# DBScan
+
+predicted_dbscan_labels = doDBScan(X_train, X_test, y_train, y_test)
+predicted_dbscan_labels = np.array(predicted_dbscan_labels)
+print("predicted db scan labels:\n", predicted_dbscan_labels)
+knn_nearestNeighbors(X_train, X_test, predicted_dbscan_labels, y_test)
