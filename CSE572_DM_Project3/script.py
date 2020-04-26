@@ -1,3 +1,4 @@
+import warnings
 from collections import Counter
 
 import numpy as np
@@ -8,6 +9,7 @@ from sklearn import metrics
 from sklearn import model_selection
 from sklearn.cluster import KMeans, DBSCAN
 from sklearn.decomposition import PCA
+from sklearn.exceptions import DataConversionWarning
 from sklearn.impute import SimpleImputer
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.preprocessing import MinMaxScaler
@@ -199,7 +201,6 @@ def getLabelledData(data, labels):
     global mapping_data_point_to_cluster
 
     _, mapping_data_point_to_cluster = dataClusterMapping(df)
-    # print(mapping_data_point_to_cluster)
 
     return df
 
@@ -207,45 +208,33 @@ def getLabelledData(data, labels):
 def doKmeans(X_train, X_test, y_train, y_test):
     k_means = KMeans(n_clusters=6)
     k_means.fit(X_train)
-    print("\nactual labels:", y_test.flatten())
+    # print("\nactual labels:", y_test.flatten())
     Y_pred = k_means.predict(X_test)
-    print("Predicted Labels-", Y_pred)
-    print("\nCluster centers: ", k_means.cluster_centers_)
+    # print("Predicted Labels-", Y_pred)
+    # print("\nCluster centers: ", k_means.cluster_centers_)
     score = metrics.accuracy_score(y_test, Y_pred)
-    print('\nAccuracy:{0:f}'.format(score))
+    # print('\nAccuracy:{0:f}'.format(score))
     cluster = pd.DataFrame(k_means.labels_)
-    print("Old cluster:", cluster)
+    # print("Old cluster:", cluster)
     clust_to_real_clust_map = mapClusterToCluster(cluster, y_train)
 
     for i in range(150):
         cluster.iloc[i][0] = clust_to_real_clust_map[cluster.iloc[i][0]]
 
-    print("New cluster with ground truth:", cluster)
+    # print("New cluster with ground truth:", cluster)
 
     return cluster
 
 
 def doDBScan(X_train, X_test, y_train, y_test):
     x_train_db = X_train.copy()
-    y_train_db = y_train.copy()
-    db_scan = DBSCAN(eps=0.265, min_samples=2)
+    # db_scan = DBSCAN(eps=0.265, min_samples=2)
+    db_scan = DBSCAN(eps=0.265, min_samples=3)
     db_scan.fit(x_train_db)
 
-
     # print("\ncluster labels:", db_scan.labels_[:])
-    # db_scan.fit_predict(x_train_db)
-    # score = metrics.accuracy_score(y_test, db_scan.fit_predict(X_test))
     # print('\nAccuracy:{0:f}'.format(score))
     cluster = pd.DataFrame(db_scan.labels_)
-    # print(cluster)
-
-    # print("Old cluster:", cluster)
-    # clust_to_real_clust_map = mapClusterToCluster(cluster, y_train)
-    #
-    # for i in range(150):
-    #     cluster.iloc[i][0] = clust_to_real_clust_map[cluster.iloc[i][0]]
-    #
-    # print("New cluster with ground truth:", cluster)
 
     cluster_np = np.array(cluster)
     for i in range(20):
@@ -254,24 +243,26 @@ def doDBScan(X_train, X_test, y_train, y_test):
     # print(bool)
 
     cluster = pd.DataFrame(cluster_np)
-    print("Old cluster:", cluster)
+    # print("Old cluster:", cluster)
     clust_to_real_clust_map = mapClusterToCluster(cluster, y_train)
 
     for i in range(150):
         cluster.iloc[i][0] = clust_to_real_clust_map[cluster.iloc[i][0]]
 
-    print("New cluster with ground truth:", cluster)
+    # print("New cluster with ground truth:", cluster)
 
     return cluster
 
-def removeOutliersDBScan(x_train_db, cluster_np):
 
+def removeOutliersDBScan(x_train_db, cluster_np):
     model = KNeighborsClassifier(n_neighbors=8, p=8)
+    warnings.filterwarnings(action='ignore', category=DataConversionWarning)
     model.fit(x_train_db, cluster_np)
 
     for i in range(150):
         if cluster_np[i][0] not in range(6):
             cluster_np[i][0] = model.predict(x_train_db[i].reshape(-1, 8))
+
 
 # cluster to correct cluster
 def mapClusterToCluster(clusters, ground_label):
@@ -296,7 +287,9 @@ def knn_nearestNeighbors(x_train, x_test, pred_labels, Y_test):
     predicted = model.predict(x_test)
     print("KNN Predicted", predicted)
     score = metrics.accuracy_score(Y_test, predicted)
+    sse = metrics.mean_squared_error(Y_test, predicted)
     print("KNN Accuracy, ", score)
+    print("KNN SSE score,", sse, "\n")
 
 
 meal_data, labels = getDataAndLabels()
@@ -314,14 +307,15 @@ y = np.array(labels)
 X_train, X_test, y_train, y_test = model_selection.train_test_split(X, y, train_size=0.60, test_size=0.40)
 #
 # # K-means
-# predicted_Kmeans_labels = doKmeans(X_train, X_test, y_train, y_test)
-# predicted_Kmeans_labels = np.array(predicted_Kmeans_labels)
-# # print(predicted_Kmeans_labels)
-# knn_nearestNeighbors(X_train, X_test, predicted_Kmeans_labels, y_test)
+print("KMeans Results:")
+predicted_Kmeans_labels = doKmeans(X_train, X_test, y_train, y_test)
+predicted_Kmeans_labels = np.array(predicted_Kmeans_labels)
+# print("predicted KMeans labels:\n", predicted_Kmeans_labels)
+knn_nearestNeighbors(X_train, X_test, predicted_Kmeans_labels, y_test)
 
 # DBScan
-
+print("DBSCAN Results:")
 predicted_dbscan_labels = doDBScan(X_train, X_test, y_train, y_test)
 predicted_dbscan_labels = np.array(predicted_dbscan_labels)
-print("predicted db scan labels:\n", predicted_dbscan_labels)
+# print("predicted db scan labels:\n", predicted_dbscan_labels)
 knn_nearestNeighbors(X_train, X_test, predicted_dbscan_labels, y_test)
